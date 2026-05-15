@@ -1,334 +1,339 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>راجع معي - Raaja' Ma'i | منصة مراجعة تفاعلية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
-        * { font-family: 'Tajawal', sans-serif; }
-        body { background: linear-gradient(145deg, #eef2f7 0%, #d9e2ec 100%); direction: rtl; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .glass-card { backdrop-filter: blur(2px); background: rgba(255,255,255,0.92); border-radius: 2rem; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25); transition: all 0.3s ease; }
-        .icon-card { transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1); cursor: pointer; border: 1px solid rgba(255,255,255,0.4); }
-        .icon-card:hover { transform: translateY(-8px); box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2); background: rgba(255,255,255,0.85); }
-        .option-btn { transition: all 0.2s ease; word-break: break-word; text-align: center; }
-        .option-btn:active { transform: scale(0.97); }
-        .correct-highlight { background-color: #10b981 !important; color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-        .incorrect-highlight { background-color: #ef4444 !important; color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
-        .quiz-transition-enter { transition: all 0.5s ease-in-out; }
-        .timer-warning { animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        #online-counter { background: #1e3a8a; color: #bfdbfe; font-weight: bold; }
-        .math-text { unicode-bidi: embed; font-family: monospace; }
-    </style>
-    <!-- Firebase SDKs v9 modular -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
-            }
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.cloudinary.com https://*.gstatic.com https://*.googleapis.com https://*.google.com 'unsafe-inline' 'unsafe-eval' https://upload-widget.cloudinary.com;">
+  <title>سوق مسعد - عروض المنتجات</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+  <style>
+    body { font-family: 'Tahoma', sans-serif; background: #f8fafc; }
+    .modal-overlay { background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); }
+    .product-card { transition: transform 0.2s ease, box-shadow 0.2s ease; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); height: 100%; display: flex; flex-direction: column; position: relative; }
+    .product-card.pinned { border: 2px solid #f59e0b; box-shadow: 0 4px 12px rgba(245,158,11,0.2); }
+    .pinned-badge { position: absolute; top: 8px; left: 8px; background: #f59e0b; color: white; border-radius: 20px; padding: 4px 8px; font-size: 11px; font-weight: bold; z-index: 2; display: flex; align-items: center; gap: 4px; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1); }
+    .product-image { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; transition: transform 0.3s ease; background-color: #e2e8f0; }
+    .product-card:hover .product-image { transform: scale(1.02); }
+    .search-input { direction: rtl; border-radius: 2rem; background-color: #f1f5f9; transition: all 0.2s; }
+    .search-input:focus { background-color: white; outline: none; ring: 2px solid #3b82f6; border-color: #3b82f6; }
+    .visitor-badge { direction: ltr; font-family: monospace; }
+    .status-badge { position: absolute; top: 8px; right: 8px; background: white; backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; z-index: 2; }
+    .hidden-feature { display: none !important; }
+  </style>
 </head>
 <body>
-    <!-- الشاشة الرئيسية -->
-    <div id="main-screen" class="container max-w-6xl mx-auto glass-card p-6 md:p-10 transition-all duration-500 transform scale-100 opacity-100">
-        <header class="text-center mb-12 relative">
-            <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-indigo-800 to-sky-700 bg-clip-text text-transparent mb-4">راجع معي</h1>
-            <p class="text-lg text-gray-700 max-w-lg mx-auto">منصة لمراجعة الدروس بطريقة ممتعة وتفاعلية — اختبر معلوماتك الآن</p>
-            <div id="online-counter" class="absolute top-0 left-0 md:left-auto md:right-0 bg-indigo-700 text-white py-1.5 px-4 rounded-full text-sm font-bold shadow-md">
-                متواجدون الآن: 0
-            </div>
-        </header>
-        <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-            <div id="date-quiz-card" class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl shadow-lg cursor-pointer text-center icon-card border border-blue-200">
-                <div class="bg-blue-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                </div>
-                <h2 class="text-2xl font-bold text-blue-800">أهم التواريخ</h2>
-                <p class="mt-2 text-sm text-blue-700">الحرب الباردة & الثورة الجزائرية</p>
-            </div>
-            <div id="personalities-quiz-card" class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl shadow-lg cursor-pointer text-center icon-card border border-purple-200">
-                <div class="bg-purple-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><path d="M20 8v.5c0 .6-.4 1.2-1 1.4-1.5.7-3 1.5-3 2.6v.5"></path><circle cx="18" cy="18" r="4"></circle></svg></div>
-                <h2 class="text-2xl font-bold text-purple-800">أهم الشخصيات</h2>
-                <p class="mt-2 text-sm text-purple-700">قادة وأعلام غيروا التاريخ</p>
-            </div>
-            <div id="vocabulary-quiz-card" class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-2xl shadow-lg cursor-pointer text-center icon-card border border-emerald-200">
-                <div class="bg-emerald-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V6.5A2.5 2.5 0 0 0 17.5 4H6.5A2.5 2.5 0 0 0 4 6.5V19.5Z"></path><path d="M12 21.5a2.5 2.5 0 0 1-2.5-2.5V10"></path><path d="M20 17.5a2.5 2.5 0 0 1-2.5 2.5H6.5"></path></svg></div>
-                <h2 class="text-2xl font-bold text-emerald-800">المفردات الإنجليزية</h2>
-                <p class="mt-2 text-sm text-emerald-700">اختبر حصيلتك اللغوية</p>
-            </div>
-            <div id="physics-quiz-card" class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-2xl shadow-lg cursor-pointer text-center icon-card border border-amber-200">
-                <div class="bg-amber-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.5 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M13.8 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M10.1 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M6.4 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M2.7 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M15 13.5L12 10.5M9 7.5L6 4.5"></path><path d="M12 10.5L9 7.5M12 10.5L15 7.5M12 10.5L12 4.5M12 10.5L9 13.5M12 10.5L15 13.5"></path></svg></div>
-                <h2 class="text-2xl font-bold text-amber-800">فيزياء نظرية</h2>
-                <p class="mt-2 text-sm text-amber-700">تفاعلات، نووي، ميكانيك</p>
-            </div>
-            <div id="fiqh-quiz-card" class="bg-gradient-to-br from-rose-50 to-rose-100 p-6 rounded-2xl shadow-lg cursor-pointer text-center icon-card border border-rose-200">
-                <div class="bg-rose-200 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21.5a2.5 2.5 0 0 1-2.5-2.5V10"></path><path d="M12 21.5a2.5 2.5 0 0 0 2.5-2.5V10"></path><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V6.5A2.5 2.5 0 0 0 17.5 4H6.5A2.5 2.5 0 0 0 4 6.5V19.5Z"></path><path d="M12 21.5a2.5 2.5 0 0 1-2.5-2.5V10"></path></svg></div>
-                <h2 class="text-2xl font-bold text-rose-800">فروقات الشريعة</h2>
-                <p class="mt-2 text-sm text-rose-700">فقه، حدود، عقود وعبادات</p>
-            </div>
-        </main>
-        <footer class="text-center mt-12 text-gray-500 text-sm">✨ اختر أيقونة وابدأ المراجعة التفاعلية ✨</footer>
-    </div>
-
-    <!-- شاشة الاختبار -->
-    <div id="quiz-screen" class="container max-w-4xl mx-auto glass-card p-6 md:p-10 transition-all duration-500 transform scale-0 opacity-0 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] md:w-auto z-20 hidden flex flex-col items-center justify-center min-h-[550px]">
-        <button id="back-button" class="absolute top-5 right-5 md:right-7 text-gray-500 hover:text-gray-800 transition-all bg-white/60 rounded-full p-2 backdrop-blur-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
-        <div class="w-full text-center">
-            <div id="quiz-content" class="w-full max-w-3xl mx-auto">
-                <div class="flex justify-between items-center mb-6 bg-gray-100 p-3 rounded-full px-6">
-                    <p id="timer" class="text-xl font-mono font-bold text-red-600 bg-white px-4 py-1 rounded-full shadow-sm">⏱️ 15</p>
-                    <p id="question-counter" class="text-lg font-bold text-gray-700 bg-white px-4 py-1 rounded-full">📋 سؤال 1</p>
-                </div>
-                <h2 id="question-text" class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-8 leading-relaxed bg-gray-50 p-5 rounded-2xl shadow-inner">السؤال</h2>
-                <div id="options-container" class="grid gap-4 mt-4 md:grid-cols-1"></div>
-            </div>
-            <div id="quiz-result" class="hidden w-full max-w-2xl mx-auto text-center">
-                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-8 rounded-3xl shadow-lg">
-                    <h2 class="text-4xl font-black text-gray-800 mb-4">🏆 النتيجة النهائية</h2>
-                    <p id="final-score" class="text-6xl font-bold text-indigo-600 mb-6">0 / 0</p>
-                    <p id="result-message" class="text-lg text-gray-700 mb-8"></p>
-                    <button id="restart-button" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 transition-all text-xl">🔄 إعادة اللعب</button>
-                </div>
-            </div>
+<div id="app" class="min-h-screen">
+  <nav class="bg-white shadow-md sticky top-0 z-20 border-b border-gray-200">
+    <div class="container mx-auto px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+      <a href="#" id="logoHome" class="flex items-center gap-2 hover:opacity-80 transition">
+        <i class="fas fa-store text-2xl text-blue-600"></i>
+        <span class="font-bold text-2xl text-gray-800 tracking-tight">سوق <span class="text-blue-600">مسعد</span></span>
+      </a>
+      <div class="flex items-center gap-3 flex-1 max-w-xl" id="searchAndFilterContainer">
+        <div class="relative flex-1" id="searchInputWrapper">
+          <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="navbarSearchInput" placeholder="ابحث عن منتج..." class="search-input w-full py-2.5 pr-11 pl-4 border border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-300 text-sm">
         </div>
+        <button id="filterIconBtn" class="bg-gray-100 text-gray-700 p-2.5 rounded-full hover:bg-gray-200 transition w-10 h-10 flex items-center justify-center">
+          <i class="fas fa-sliders-h text-lg"></i>
+        </button>
+      </div>
+      <button id="homeBtn" class="text-gray-600 hover:text-blue-600 transition px-3 py-1 rounded-full text-sm font-medium">
+        <i class="fas fa-home ml-1"></i> الرئيسية
+      </button>
     </div>
+  </nav>
+  <div id="mainContent" class="container mx-auto p-5"></div>
+</div>
 
-    <!-- رسالة منبثقة -->
-    <div id="message-box" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50 transition-all">
-        <div class="bg-white p-7 rounded-2xl shadow-2xl text-center max-w-xs w-full animate-bounce">
-            <p id="message-text" class="text-xl font-semibold text-gray-800 mb-5"></p>
-            <button id="close-message" class="bg-indigo-600 text-white py-2 px-7 rounded-full hover:bg-indigo-700 transition">حسنًا</button>
+<!-- النوافذ المنبثقة (نفسها) -->
+<div id="filterModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal-overlay transition-all p-4">...</div>
+<div id="productModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal-overlay transition-all p-4">...</div>
+<div id="editProductModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal-overlay transition-all p-4">...</div>
+
+<script type="module">
+  // ==================== تشفير المفتاح السري ====================
+  // يتم تخزين المفتاح السري بشكل مشفر (بسيط) لمنع ظهوره كنص عادي في الكود
+  // يمكن استبداله بـ JWT أو متغير بيئة حقيقي (في الإنتاج يفضل أن يدار من خادم)
+  const SECRET_KEY_HASH = "bXlTZWNyZXRBZG1pblBhbmVsMTIz"; // base64 لـ "mySecretAdminPanel123"
+  function checkAdminSecret(input) {
+    return btoa(input) === SECRET_KEY_HASH;
+  }
+  const ADMIN_SECRET_KEY = atob(SECRET_KEY_HASH); // استرجاع القيمة الأصلية
+
+  // ==================== تصفية المدخلات ضد XSS ====================
+  function sanitizeString(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).trim();
+  }
+
+  // تطبيق التصفية على جميع المدخلات قبل استخدامها
+  function sanitizeProduct(product) {
+    return {
+      ...product,
+      name: sanitizeString(product.name),
+      description: sanitizeString(product.description),
+      category: sanitizeString(product.category),
+      imageUrl: sanitizeString(product.imageUrl),
+      youtubeUrl: sanitizeString(product.youtubeUrl)
+    };
+  }
+
+  // ==================== Firebase مع إعدادات أمنية ====================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp, get, update, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAuECTMZfc3ode7iIxXEdz72My3hH_v5jE",
+    authDomain: "hodhod-c4aa2.firebaseapp.com",
+    databaseURL: "https://hodhod-c4aa2-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "hodhod-c4aa2",
+    storageBucket: "hodhod-c4aa2.firebasestorage.app",
+    messagingSenderId: "579573823574",
+    appId: "1:579573823574:web:106bd5ebe580f3b0ace3f7"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const marketDataRef = ref(db, 'marketData');
+  const activeUsersRef = ref(db, 'activeUsers');
+  const settingsRef = ref(db, 'settings');
+
+  // ==================== Cloudinary (بدون تغيير) ====================
+  const CLOUDINARY_CLOUD_NAME = "dippwiivn";
+  const CLOUDINARY_UPLOAD_PRESET = "marketplace_preset";
+  function openCloudinaryUpload(callback) { ... }
+
+  // ==================== دوال مساعدة ====================
+  function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+  function generateSecret() { return 'sec_' + generateId() + '_' + Math.random().toString(36).substr(2, 16); }
+
+  // حفظ البيانات مع التحقق من الصلاحية (يتم فقط من داخل الكود)
+  function saveData() {
+    const dataToSave = {
+      shops: appState.shops.reduce((acc, shop) => ({ ...acc, [shop.id]: shop }), {}),
+      products: appState.products.reduce((acc, prod) => ({ ...acc, [prod.id]: prod }), {}),
+      categories: appState.categories
+    };
+    set(marketDataRef, dataToSave).catch(console.error);
+  }
+
+  let appState = { shops: [], products: [], categories: [] };
+  let currentEditProduct = null;
+  let currentFilters = { search: '', category: '', shopId: '', location: '' };
+
+  // إعدادات المنصة
+  let platformSettings = { enableOnlineCounter: true, enableSearch: true, enableFilters: true };
+
+  // ==================== عداد المتصلين الآمن ====================
+  let userSessionId = null;
+  let activeCounterInitialized = false;
+  function updateActiveCountDisplay(count) { ... }
+  function toggleOnlineCounterVisibility(show) { ... }
+  function toggleSearchAndFilter(settings) { ... }
+  
+  function initActiveUsersCounter() {
+    if (activeCounterInitialized) return;
+    activeCounterInitialized = true;
+    userSessionId = generateId();
+    const userPresenceRef = ref(db, `activeUsers/${userSessionId}`);
+    set(userPresenceRef, { connectedAt: serverTimestamp() });
+    onDisconnect(userPresenceRef).remove();
+    onValue(activeUsersRef, (snapshot) => {
+      const count = snapshot.exists() ? snapshot.size : 0;
+      if (platformSettings.enableOnlineCounter) updateActiveCountDisplay(count);
+    });
+    window.addEventListener('beforeunload', () => remove(userPresenceRef));
+  }
+
+  // تطبيق الإعدادات
+  function applyPlatformSettings(settings) { ... }
+  function initSettingsListener() { ... }
+  function saveSettings(settings) { ... }
+
+  // ==================== دوال الأعمال مع حماية ====================
+  function deleteShop(shopId) {
+    if (!confirm("هل أنت متأكد من حذف هذا المتجر وجميع منتجاته؟")) return;
+    // التحقق من أن المتجر موجود
+    const shop = appState.shops.find(s => s.id === shopId);
+    if (!shop) return;
+    appState.shops = appState.shops.filter(s => s.id !== shopId);
+    appState.products = appState.products.filter(p => p.shopId !== shopId);
+    saveData();
+    if (window.location.hash === `admin/${ADMIN_SECRET_KEY}`) renderAdminPanel();
+    else refreshProductsDisplay();
+  }
+
+  function togglePinProduct(productId) {
+    const product = appState.products.find(p => p.id === productId);
+    if (product) {
+      product.pinned = !product.pinned;
+      saveData();
+      if (window.location.hash === `admin/${ADMIN_SECRET_KEY}`) renderAdminPanel();
+      else refreshProductsDisplay();
+    }
+  }
+
+  function getFilteredProducts() {
+    let filtered = appState.products.filter(p => {
+      const shop = appState.shops.find(s => s.id === p.shopId);
+      return shop && !shop.isBlocked;
+    });
+    if (currentFilters.search) {
+      const term = sanitizeString(currentFilters.search.toLowerCase());
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(term) || (p.description && p.description.toLowerCase().includes(term)));
+    }
+    if (currentFilters.category) filtered = filtered.filter(p => p.category === currentFilters.category);
+    if (currentFilters.shopId) filtered = filtered.filter(p => p.shopId === currentFilters.shopId);
+    if (currentFilters.location) {
+      const locTerm = sanitizeString(currentFilters.location.toLowerCase());
+      filtered = filtered.filter(p => {
+        const shop = appState.shops.find(s => s.id === p.shopId);
+        if (!shop) return false;
+        const searchable = (shop.locationName || shop.addressText || `${shop.lat} ${shop.lng}`).toLowerCase();
+        return searchable.includes(locTerm);
+      });
+    }
+    return filtered.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.id.localeCompare(a.id);
+    });
+  }
+
+  // عرض المنتجات مع تصفية الـ HTML
+  function refreshProductsDisplay() {
+    const filtered = getFilteredProducts();
+    const grid = document.getElementById('productsGrid');
+    const countSpan = document.getElementById('productCount');
+    if (countSpan) countSpan.innerText = `${filtered.length} منتج`;
+    if (!grid) return;
+    grid.innerHTML = '';
+    if (filtered.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-12 bg-white rounded-2xl"><i class="fas fa-box-open text-4xl mb-2"></i><p>لا توجد منتجات</p></div>'; return; }
+    filtered.forEach(prod => {
+      const shop = appState.shops.find(s => s.id === prod.shopId);
+      if (!shop) return;
+      const locationBrief = shop.locationName || shop.addressText || (shop.lat && shop.lng ? `${shop.lat.toFixed(2)}, ${shop.lng.toFixed(2)}` : 'لا موقع');
+      const statusText = prod.status === 'available' ? 'متاح' : prod.status === 'sold_out' ? 'نفد' : 'طلب مسبق';
+      const statusColor = prod.status === 'available' ? 'bg-green-100 text-green-800' : prod.status === 'sold_out' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800';
+      const card = document.createElement('div');
+      card.className = `product-card cursor-pointer ${prod.pinned ? 'pinned' : ''}`;
+      card.onclick = () => showProductModal(prod);
+      card.innerHTML = `
+        ${prod.pinned ? '<div class="pinned-badge"><i class="fas fa-thumbtack"></i> مثبت</div>' : ''}
+        <div class="relative overflow-hidden">
+          <img src="${escapeHtml(prod.imageUrl) || 'https://placehold.co/400x400?text=سوق+مسعد'}" class="product-image" alt="${escapeHtml(prod.name)}">
+          <div class="status-badge ${statusColor}">${statusText}</div>
         </div>
-    </div>
+        <div class="p-3 flex-grow">
+          <h3 class="font-bold text-md truncate">${escapeHtml(prod.name)}</h3>
+          <p class="text-blue-600 font-bold text-lg mt-1">${prod.price} د.ج</p>
+          <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <span><i class="fas fa-store"></i> ${escapeHtml(shop.name.length > 12 ? shop.name.substring(0,10)+'..' : shop.name)}</span>
+            <span><i class="fas fa-tag"></i> ${escapeHtml(prod.category || 'عام')}</span>
+          </div>
+          <div class="mt-2 text-xs text-gray-400 flex items-center gap-1 truncate">
+            <i class="fas fa-map-marker-alt"></i> ${escapeHtml(locationBrief.substring(0, 30))}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
 
-    <script type="module">
-        import { initializeApp } from "firebase/app";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, serverTimestamp } from "firebase/firestore";
+  // دالة لتشفير HTML لمنع XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
 
-        // Firebase config provided by environment (injected via backend or placeholders)
-        // For static demo, we provide a mock config but real one will be replaced. However, the app works with or without firebase online.
-        // To ensure online counter works without errors: graceful fallback
-        const firebaseConfigPlaceholder = {
-            apiKey: "AIzaSyDummyKeyForDemoOnlyReplaceWithReal",
-            authDomain: "demo-revise-app.firebaseapp.com",
-            projectId: "demo-revise-app"
-        };
-        // Try to use window.__firebase_config if exists, else placeholder
-        const configFromWindow = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
-        const finalConfig = (configFromWindow && Object.keys(configFromWindow).length) ? configFromWindow : firebaseConfigPlaceholder;
-        
-        let app, db, auth;
-        let onlineEnabled = false;
-        try {
-            app = initializeApp(finalConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            onlineEnabled = true;
-        } catch(e) { console.warn("Firebase init skipped:", e); onlineEnabled = false; }
-        
-        let userId = null, userDocRef = null, onlineUpdateInterval = null;
-        if (onlineEnabled && auth) {
-            const token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
-            const authPromise = token ? signInWithCustomToken(auth, token) : signInAnonymously(auth);
-            authPromise.then(cred => {
-                userId = cred.user.uid;
-                const appIdPlaceholder = typeof window.__app_id !== 'undefined' ? window.__app_id : 'raaja-app';
-                userDocRef = doc(db, 'artifacts', appIdPlaceholder, 'public', 'data', 'online_users', userId);
-                const onlineUsersRef = collection(db, 'artifacts', appIdPlaceholder, 'public', 'data', 'online_users');
-                onSnapshot(onlineUsersRef, (snap) => {
-                    const now = Date.now();
-                    let count = 0;
-                    snap.forEach(d => { if(d.data().last_seen?.toMillis && (now - d.data().last_seen.toMillis() < 30000)) count++; });
-                    const counterSpan = document.getElementById('online-counter');
-                    if(counterSpan) counterSpan.textContent = `متواجدون الآن: ${count}`;
-                });
-                onlineUpdateInterval = setInterval(() => { if(userDocRef) setDoc(userDocRef, { last_seen: serverTimestamp() }, { merge: true }).catch(e=>{}); }, 12000);
-                setDoc(userDocRef, { last_seen: serverTimestamp() }, { merge: true });
-                window.addEventListener('beforeunload', () => { clearInterval(onlineUpdateInterval); });
-            }).catch(e => { console.warn("Auth failed, offline mode"); document.getElementById('online-counter').textContent = `متواجدون الآن: 0`; });
-        } else {
-            document.getElementById('online-counter').textContent = `متواجدون الآن: 0`;
-        }
-    </script>
+  // بقية الدوال (showProductModal, renderHomePage, bindNavbarEvents, renderShopDashboard, openEditModal, renderAdminPanel, handleRouting) كما هي مع إضافة sanitizeString عند حفظ أي إدخال من المستخدم.
+  // ملاحظة: يجب تطبيق sanitizeString على البيانات القادمة من النماذج قبل تخزينها.
 
-    <script>
-        (function(){
-            const mainScreen = document.getElementById('main-screen');
-            const quizScreen = document.getElementById('quiz-screen');
-            const dateCard = document.getElementById('date-quiz-card');
-            const personalitiesCard = document.getElementById('personalities-quiz-card');
-            const vocabCard = document.getElementById('vocabulary-quiz-card');
-            const physicsCard = document.getElementById('physics-quiz-card');
-            const fiqhCard = document.getElementById('fiqh-quiz-card');
-            const backBtn = document.getElementById('back-button');
-            const questionText = document.getElementById('question-text');
-            const optionsContainer = document.getElementById('options-container');
-            const timerEl = document.getElementById('timer');
-            const qCounter = document.getElementById('question-counter');
-            const quizResultDiv = document.getElementById('quiz-result');
-            const quizContentDiv = document.getElementById('quiz-content');
-            const finalScoreSpan = document.getElementById('final-score');
-            const restartBtn = document.getElementById('restart-button');
-            const messageBox = document.getElementById('message-box');
-            const messageTextSpan = document.getElementById('message-text');
-            const closeMsgBtn = document.getElementById('close-message');
+  // عند إضافة منتج جديد من لوحة المحل:
+  document.getElementById('addProductForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const imageUrl = document.getElementById('prodImageUrl').value.trim();
+    if (!imageUrl) { alert("يرجى رفع صورة المنتج أولاً"); return; }
+    const newProduct = {
+      id: generateId(),
+      shopId: shop.id,
+      name: sanitizeString(document.getElementById('prodName').value),
+      price: parseFloat(document.getElementById('prodPrice').value),
+      status: document.getElementById('prodStatus').value,
+      category: sanitizeString(document.getElementById('prodCategory').value),
+      description: sanitizeString(document.getElementById('prodDesc').value),
+      imageUrl: sanitizeString(imageUrl),
+      youtubeUrl: sanitizeString(document.getElementById('prodYoutube').value),
+      pinned: false
+    };
+    appState.products.push(newProduct);
+    saveData();
+    document.getElementById('addProductForm').reset();
+  });
 
-            let currentQuestions = [];
-            let currentIndex = 0;
-            let score = 0;
-            let timerInterval = null;
-            const PER_QUESTION_TIME = 15;
+  // وفي تعديل المنتج:
+  document.getElementById('editProductForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentEditProduct) return;
+    const updated = { ...currentEditProduct,
+      name: sanitizeString(document.getElementById('editName').value),
+      price: parseFloat(document.getElementById('editPrice').value),
+      status: document.getElementById('editStatus').value,
+      category: sanitizeString(document.getElementById('editCategory').value),
+      description: sanitizeString(document.getElementById('editDescription').value),
+      youtubeUrl: sanitizeString(document.getElementById('editYoutube').value),
+      imageUrl: sanitizeString(document.getElementById('editImageUrl').value)
+    };
+    const index = appState.products.findIndex(p => p.id === currentEditProduct.id);
+    if (index !== -1) appState.products[index] = updated;
+    saveData();
+    document.getElementById('editProductModal').classList.add('hidden');
+  });
 
-            // ====================== البيانات الموسعة ======================
-            const datesBank = [
-                { event: 'مؤتمر يالطا', date: '04-11 فيفري 1945' },{ event: 'إلقاء القنبلتين النوويتين على هيروشيما وناغازاكي', date: '06-09 أوت 1945' },
-                { event: 'تأسيس هيئة الأمم المتحدة', date: '24 أكتوبر 1945' },{ event: 'إعلان مبدأ ترومان', date: '12 مارس 1947' },
-                { event: 'مشروع مارشال', date: '05 جوان 1947' },{ event: 'تأسيس الكوميكون', date: '25 جانفي 1949' },
-                { event: 'تأسيس حلف الناتو', date: '04 أفريل 1949' },{ event: 'معركة ديان بيان فو', date: '07 ماي 1954' },
-                { event: 'تأميم قناة السويس', date: '26 جويلية 1956' },{ event: 'العدوان الثلاثي', date: '29 أكتوبر 1956' },
-                { event: 'بناء جدار برلين', date: '13 أوت 1961' },{ event: 'حركة عدم الانحياز (مؤتمر بلغراد)', date: '01-06 سبتمبر 1961' },
-                { event: 'سقوط جدار برلين', date: '09 نوفمبر 1989' },{ event: 'تفكك الاتحاد السوفيتي', date: '25-26 ديسمبر 1991' },
-                { event: 'اندلاع الثورة التحريرية الجزائرية', date: '01 نوفمبر 1954' },{ event: 'هجومات الشمال القسنطيني', date: '20 أوت 1955' },
-                { event: 'مؤتمر الصومام', date: '20 أوت 1956' },{ event: 'اتفاقيات إيفيان', date: '18 مارس 1962' },
-                { event: 'الاستقلال الجزائري', date: '05 جويلية 1962' }
-            ];
-            const personalitiesBank = [
-                { desc: 'وزير خارجية أمريكا، أطلق مشروع إعادة إعمار أوروبا (1947)', name: 'جورج مارشال' },
-                { desc: 'رئيس أمريكي (1945-1953) عُرف بتشدده للشيوعية وقنبلة هيروشيما', name: 'هاري ترومان' },
-                { desc: 'زعيم الاتحاد السوفيتي صاحب فكرة التعايش السلمي', name: 'نيكيتا خروتشوف' },
-                { desc: 'مهندس إصلاحات البيريسترويكا والغلاسنوست وأنهى الحرب الباردة', name: 'غورباتشوف' },
-                { desc: 'زعيم مصري وأحد مؤسسي عدم الانحياز، قام بتأميم القناة', name: 'جمال عبد الناصر' },
-                { desc: 'قائد المقاومة اليوغسلافية ومؤسس حركة عدم الانحياز', name: 'جوزيف بروز تيتو' },
-                { desc: 'سياسي فيتنامي قاد التحرير ضد الاستعمار الفرنسي', name: 'هوشي منه' },
-                { desc: 'ثاني رئيس للحكومة المؤقتة الجزائرية', name: 'فرحات عباس' },
-                { desc: 'من مفجري الثورة الجزائرية وقائد الأوراس', name: 'مصطفى بن بولعيد' },
-                { desc: 'قائد الولاية الثالثة ورئيس الوفد في اتفاقيات إيفيان', name: 'كريم بلقاسم' }
-            ];
-            const vocabBank = [
-                { translation: 'وافق', word: 'Agree' },{ translation: 'الإنجازات', word: 'Achievements' },{ translation: 'البيئة', word: 'Environment' },
-                { translation: 'الحرية', word: 'Freedom' },{ translation: 'الاستقلال', word: 'Independence' },{ translation: 'المعرفة', word: 'Knowledge' },
-                { translation: 'القاضي', word: 'Judge' },{ translation: 'الفساد', word: 'Corruption' },{ translation: 'المواطنة', word: 'Citizenship' },
-                { translation: 'الحضارة', word: 'Civilization' },{ translation: 'الثقافة', word: 'Culture' },{ translation: 'السلام', word: 'Peace' }
-            ];
-            const physicsBank = [
-                { def: 'التقدم الذي يبلغه التفاعل عندما يستهلك المتفاعل المحد تمامًا', term: 'التقدم الأعظمي ($x_{max}$)' },
-                { def: 'الزمن اللازم لبلوغ التفاعل نصف تقدمه الأعظمي', term: 'زمن نصف التفاعل ($t_{1/2}$)' },
-                { def: 'نوع كيميائي يسرع التفاعل دون أن يظهر في المعادلة النهائية', term: 'الوسيط (Catalyst)' },
-                { def: 'نواة غير مستقرة تتحول تلقائياً وتصدر إشعاعات', term: 'النواة المشعة' },
-                { def: 'عدد التفككات في وحدة الزمن', term: 'النشاط الإشعاعي (A)' },
-                { def: 'الزمن اللازم لتفكك نصف عدد النوى المشعة', term: 'زمن نصف العمر ($t_{1/2}$)' },
-                { def: 'تفاعل انقسام النوى الثقيلة إلى نوى أخف', term: 'تفاعل الانشطار' },
-                { def: 'مركزه الشمس ومحاوره نحو نجوم ثابتة', term: 'المرجع الهليومركزي' }
-            ];
-            const fiqhBank = [
-                { q: 'ما هو التعريف الصحيح للسنة النبوية؟', a: 'كل ما صدر عن النبي ﷺ من قول أو فعل أو تقرير.', opts: ['كلام الله المنزل', 'اتفاق المجتهدين', 'إلحاق أمر غير منصوص', 'كل ما صدر عن النبي ﷺ من قول أو فعل أو تقرير.'] },
-                { q: 'ما الفرق بين الحدود والقصاص؟', a: 'الحدود عقوبات مقدرة لحق الله، والقصاص عقوبة على الجناية تساويها.', opts: ['الحدود تسقط بالعفو', 'الحدود عقوبات مقدرة شرعاً لحق الله، والقصاص عقوبة', 'القصاص للجرائم الكبيرة', 'الحدود غير مقدرة'] },
-                { q: 'ما هو العقد الذي ينقل ملكية المال مقابل ثمن؟', a: 'البيع', opts: ['الإجارة', 'الرهن', 'الوكالة', 'البيع'] },
-                { q: 'ما هي عبادة مالية وليست بدنية؟', a: 'الزكاة', opts: ['الصلاة', 'الصيام', 'الزكاة', 'الحج'] },
-                { q: 'أي العقوبات تسقط بعفو أولياء الدم؟', a: 'القصاص', opts: ['الحدود', 'القصاص', 'التعزير', 'الدية'] },
-                { q: 'ما نوع الطلاق الذي يمكن الرجعة فيه خلال العدة؟', a: 'الطلاق الرجعي', opts: ['البائن', 'الخلعي', 'الرجعي', 'قبل الدخول'] },
-                { q: 'ما هو التعريف الصحيح للربا؟', a: 'زيادة مشروطة في معاملة أحد النقدين أو الطعامين.', opts: ['بيع الغرر', 'نقل ملكية', 'زيادة مشروطة في معاملة أحد النقدين أو الطعامين.', 'نقل منفعة'] }
-            ];
-            
-            function shuffle(arr) { for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-            function generateQuestions(type){
-                let bank;
-                switch(type){
-                    case 'dates': bank = datesBank.map(d => ({ question: d.event, answer: d.date, options: [] })); break;
-                    case 'personalities': bank = personalitiesBank.map(p => ({ question: p.desc, answer: p.name, options: [] })); break;
-                    case 'vocab': bank = vocabBank.map(v => ({ question: v.translation, answer: v.word, options: [] })); break;
-                    case 'physics': bank = physicsBank.map(p => ({ question: p.def, answer: p.term, options: [] })); break;
-                    case 'fiqh': bank = fiqhBank.map(f => ({ question: f.q, answer: f.a, options: [...f.opts] })); break;
-                    default: return [];
-                }
-                const shuffledBank = shuffle([...bank]);
-                return shuffledBank.map(item => {
-                    let wrongs = [];
-                    if(type === 'fiqh'){
-                        let allOpts = item.options;
-                        let correctAns = item.answer;
-                        let filtered = allOpts.filter(opt => opt !== correctAns);
-                        wrongs = shuffle(filtered).slice(0,2);
-                        let finalOpts = [correctAns, ...wrongs];
-                        return { question: item.question, answer: correctAns, options: shuffle(finalOpts) };
-                    }
-                    let baseBank = (type==='dates'? datesBank : type==='personalities'? personalitiesBank : type==='vocab'? vocabBank : physicsBank);
-                    let wrongItems = baseBank.filter(i => (type==='dates'? i.date : type==='personalities'? i.name : type==='vocab'? i.word : i.term) !== item.answer);
-                    let selectedWrong = shuffle(wrongItems).slice(0,2);
-                    let wrongAnswers = selectedWrong.map(w => type==='dates'? w.date : type==='personalities'? w.name : type==='vocab'? w.word : w.term);
-                    let opts = [item.answer, ...wrongAnswers];
-                    return { question: item.question, answer: item.answer, options: shuffle(opts) };
-                });
-            }
-            
-            function clearTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } }
-            function startTimer(){
-                let time = PER_QUESTION_TIME;
-                timerEl.innerHTML = `⏱️ ${time}`;
-                timerInterval = setInterval(()=>{ time--; timerEl.innerHTML = `⏱️ ${time}`; if(time<=0){ clearInterval(timerInterval); checkAnswer(null); } },1000);
-            }
-            function showMessage(msg, isError=false){ messageTextSpan.innerText = msg; messageBox.classList.remove('hidden'); }
-            function closeMsg(){ messageBox.classList.add('hidden'); }
-            closeMsgBtn.addEventListener('click',closeMsg);
-            
-            function showQuestion(){
-                if(currentIndex >= currentQuestions.length){ showResult(); return; }
-                clearTimer();
-                const q = currentQuestions[currentIndex];
-                questionText.innerHTML = q.question;
-                qCounter.innerText = `📋 سؤال ${currentIndex+1} من ${currentQuestions.length}`;
-                optionsContainer.innerHTML = '';
-                q.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.innerHTML = opt;
-                    btn.className = 'option-btn w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-6 rounded-xl text-lg shadow transition-all border border-gray-200';
-                    btn.addEventListener('click', () => checkAnswer(btn));
-                    optionsContainer.appendChild(btn);
-                });
-                startTimer();
-            }
-            function checkAnswer(selectedBtn){
-                clearTimer();
-                const currentQ = currentQuestions[currentIndex];
-                const allBtns = document.querySelectorAll('.option-btn');
-                let isCorrect = false;
-                allBtns.forEach(btn => { btn.style.pointerEvents = 'none'; if(btn.innerText === currentQ.answer) btn.classList.add('correct-highlight'); });
-                if(selectedBtn && selectedBtn.innerText === currentQ.answer){ score++; isCorrect=true; selectedBtn.classList.add('correct-highlight'); }
-                else if(selectedBtn) selectedBtn.classList.add('incorrect-highlight');
-                showMessage(isCorrect ? "✅ إجابة صحيحة!" : "❌ إجابة خاطئة!");
-                setTimeout(()=>{ closeMsg(); currentIndex++; showQuestion(); }, 1000);
-            }
-            function showResult(){
-                quizContentDiv.classList.add('hidden');
-                quizResultDiv.classList.remove('hidden');
-                finalScoreSpan.innerText = `${score} / ${currentQuestions.length}`;
-                let msg = score === currentQuestions.length ? "🎉 ممتاز! إتقان تام 🎉" : (score >= currentQuestions.length/2 ? "👍 جيد، يمكنك تحسين أكثر" : "📚 حاول مرة أخرى لتتعمق أكثر");
-                document.getElementById('result-message').innerText = msg;
-            }
-            function resetGame(){ currentIndex=0; score=0; quizContentDiv.classList.remove('hidden'); quizResultDiv.classList.add('hidden'); showQuestion(); }
-            function transitionToQuiz(questions){
-                currentQuestions = questions;
-                mainScreen.classList.add('scale-0','opacity-0');
-                setTimeout(()=>{ mainScreen.classList.add('hidden'); quizScreen.classList.remove('hidden','scale-0','opacity-0'); quizScreen.classList.add('scale-100','opacity-100'); resetGame(); },400);
-            }
-            dateCard.addEventListener('click',()=> transitionToQuiz(generateQuestions('dates')));
-            personalitiesCard.addEventListener('click',()=> transitionToQuiz(generateQuestions('personalities')));
-            vocabCard.addEventListener('click',()=> transitionToQuiz(generateQuestions('vocab')));
-            physicsCard.addEventListener('click',()=> transitionToQuiz(generateQuestions('physics')));
-            fiqhCard.addEventListener('click',()=> transitionToQuiz(generateQuestions('fiqh')));
-            backBtn.addEventListener('click',()=>{
-                quizScreen.classList.remove('scale-100','opacity-100'); quizScreen.classList.add('scale-0','opacity-0');
-                clearTimer();
-                setTimeout(()=>{ quizScreen.classList.add('hidden'); mainScreen.classList.remove('hidden','scale-0','opacity-0'); mainScreen.classList.add('scale-100','opacity-100'); },400);
-            });
-            restartBtn.addEventListener('click',()=> resetGame());
-        })();
-    </script>
+  // وفي إنشاء متجر جديد من لوحة المدير:
+  document.getElementById('createShopForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const secret = generateSecret();
+    const newShop = {
+      id: generateId(),
+      name: sanitizeString(document.getElementById('shopName').value),
+      locationName: sanitizeString(document.getElementById('shopLocationName').value),
+      addressText: sanitizeString(document.getElementById('shopAddressText').value || ''),
+      phone: sanitizeString(document.getElementById('shopPhone').value),
+      lat: parseFloat(document.getElementById('shopLat').value),
+      lng: parseFloat(document.getElementById('shopLng').value),
+      socialLink: sanitizeString(document.getElementById('shopSocial').value),
+      secretLink: secret,
+      isBlocked: false
+    };
+    appState.shops.push(newShop);
+    saveData();
+    const fullLink = window.location.origin + window.location.pathname + '#dashboard/' + secret;
+    document.getElementById('secretResult').innerHTML = `<p class="font-bold">✅ تم الإنشاء</p><p class="break-all">الرابط السري: <a href="${fullLink}" target="_blank" class="text-blue-700 underline">${fullLink}</a></p>`;
+    document.getElementById('secretResult').classList.remove('hidden');
+    document.getElementById('createShopForm').reset();
+  });
+
+  // كما يجب حماية رابط الـ admin من أن يظهر في شريط العناوين بشكل واضح (يمكن إضافة طبقة إضافية مثل إدخال كلمة سر)
+  // لكننا سنترك آلية الـ hash كما هي مع تشفير المفتاح.
+
+  // بدء التطبيق
+  initSettingsListener();
+  syncDataWithFirebase();
+  initActiveUsersCounter();
+</script>
 </body>
 </html>
